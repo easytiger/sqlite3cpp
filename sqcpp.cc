@@ -9,13 +9,13 @@
 
 using namespace std;
 
-Wombat::Utils::SqliteDB::SqliteDB()
+Sqlite3::SqliteDB::SqliteDB()
      : db(NULL)
 {
  
 }
 
-Wombat::Utils::SqliteDB::SqliteDB(const char* db_filename) 
+Sqlite3::SqliteDB::SqliteDB(const char* db_filename) 
      : db (NULL)
 {
      open_db(db_filename);
@@ -24,7 +24,7 @@ Wombat::Utils::SqliteDB::SqliteDB(const char* db_filename)
      pthread_mutex_init(&com_mutex, NULL);
 }
 
-Wombat::Utils::SqliteDB::~SqliteDB()
+Sqlite3::SqliteDB::~SqliteDB()
 {
      pthread_mutex_destroy(&com_mutex);
      if (is_open())
@@ -32,7 +32,7 @@ Wombat::Utils::SqliteDB::~SqliteDB()
 }
 
 void
-Wombat::Utils::SqliteDB::open_db(const char* db_filename)
+Sqlite3::SqliteDB::open_db(const char* db_filename)
 {
      assert(db == NULL);
      if (is_open())
@@ -49,19 +49,19 @@ Wombat::Utils::SqliteDB::open_db(const char* db_filename)
 }
 
 void
-Wombat::Utils::SqliteDB::getCommitLock()
+Sqlite3::SqliteDB::getCommitLock()
 {
-    pthread_mutex_lock(&com_mutex);
+     pthread_mutex_lock(&com_mutex);
 }
 
 void
-Wombat::Utils::SqliteDB::releaseCommitLock()
+Sqlite3::SqliteDB::releaseCommitLock()
 {
-    pthread_mutex_unlock(&com_mutex);
+     pthread_mutex_unlock(&com_mutex);
 }
 
 void
-Wombat::Utils::SqliteDB::close_db()
+Sqlite3::SqliteDB::close_db()
 {
      if (is_open()) {
           sqlite3_close(db);
@@ -70,13 +70,13 @@ Wombat::Utils::SqliteDB::close_db()
 }
 
 bool
-Wombat::Utils::SqliteDB::is_open()
+Sqlite3::SqliteDB::is_open()
 {
      return (db != NULL);
 }
 
 void
-Wombat::Utils::SqliteDB::enhance_perf() {
+Sqlite3::SqliteDB::enhance_perf() {
 
      //todo: replace with execDML
      assert(db != NULL);
@@ -92,13 +92,13 @@ Wombat::Utils::SqliteDB::enhance_perf() {
 }
 
 sqlite3*
-Wombat::Utils::SqliteDB::get_db_ptr()
+Sqlite3::SqliteDB::get_db_ptr()
 {
      return db;
 }
 
 sqlite3_int64
-Wombat::Utils::SqliteDB::get_last_row_id()
+Sqlite3::SqliteDB::get_last_row_id()
 {
      assert(db != NULL);
   
@@ -106,7 +106,7 @@ Wombat::Utils::SqliteDB::get_last_row_id()
 
 }
 
-Wombat::Utils::SqliteDBStatement::SqliteDBStatement (SqliteDB& db_r)        
+Sqlite3::SqliteDBStatement::SqliteDBStatement (SqliteDB& db_r)        
      : db_ref (db_r),
        in_result_set (false)
 			
@@ -115,27 +115,27 @@ Wombat::Utils::SqliteDBStatement::SqliteDBStatement (SqliteDB& db_r)
 }
 
 
-Wombat::Utils::SqliteDBStatement::~SqliteDBStatement()
+Sqlite3::SqliteDBStatement::~SqliteDBStatement()
 {
-      //todo: catch error and thrown if != SQLITE? any benefit?
+     //todo: catch error and thrown if != SQLITE? any benefit?
 
     
 }
 
 sqlite3_stmt* 
-Wombat::Utils::SqliteDBStatement::get_stmt_ptr (void)
+Sqlite3::SqliteDBStatement::get_stmt_ptr (void)
 {
      return stmt_p;
 }
 
 void
-Wombat::Utils::SqliteDBStatement::prepare(const string sql)
+Sqlite3::SqliteDBStatement::prepare(const string sql)
 {
      prepare (sql.c_str());
 }
 
 void
-Wombat::Utils::SqliteDBStatement::prepare(const char * sql)
+Sqlite3::SqliteDBStatement::prepare(const char * sql)
 {
      int ret = 
           sqlite3_prepare_v2(db_ref.get_db_ptr(), sql, -1, &stmt_p, NULL);
@@ -146,7 +146,7 @@ Wombat::Utils::SqliteDBStatement::prepare(const char * sql)
 
 
 bool
-Wombat::Utils::SqliteDBStatement::step (void)
+Sqlite3::SqliteDBStatement::step (void)
 {
      /* Return true if we have more results to step through */
      int ret = sqlite3_step(stmt_p); 
@@ -171,13 +171,13 @@ Wombat::Utils::SqliteDBStatement::step (void)
 }
 
 void
-Wombat::Utils::SqliteDBStatement::execDML (const string sql)
+Sqlite3::SqliteDBStatement::execDML (const string sql)
 {
      execDML (sql.c_str());
 }
 
 void
-Wombat::Utils::SqliteDBStatement::execDML (const char * sql)
+Sqlite3::SqliteDBStatement::execDML (const char * sql)
 {
      //  assert(stmt_p != NULL);/// can be null but is not always? WTF?
      char *err;
@@ -194,7 +194,7 @@ Wombat::Utils::SqliteDBStatement::execDML (const char * sql)
 
 
 void
-Wombat::Utils::SqliteDBStatement::begin_transaction()
+Sqlite3::SqliteDBStatement::begin_transaction()
 {
      db_ref.getCommitLock();
      execDML("BEGIN TRANSACTION;");
@@ -202,14 +202,14 @@ Wombat::Utils::SqliteDBStatement::begin_transaction()
 
 
 void
-Wombat::Utils::SqliteDBStatement::rollback_transaction()
+Sqlite3::SqliteDBStatement::rollback_transaction()
 {
      execDML("ROLLBACK TRANSACTION;");
 }
 
 
 void
-Wombat::Utils::SqliteDBStatement::commit_transaction()
+Sqlite3::SqliteDBStatement::commit_transaction()
 {
 
      execDML("COMMIT TRANSACTION;");
@@ -218,7 +218,7 @@ Wombat::Utils::SqliteDBStatement::commit_transaction()
 
 
 void
-Wombat::Utils::SqliteDBStatement::reset()
+Sqlite3::SqliteDBStatement::reset()
 {
      // reset doesn't effect bindings
      if (stmt_p != NULL)
@@ -229,7 +229,7 @@ Wombat::Utils::SqliteDBStatement::reset()
 
 
 void
-Wombat::Utils::SqliteDBStatement::reset_bindings()
+Sqlite3::SqliteDBStatement::reset_bindings()
 {
      // reset bindings
      if (stmt_p != NULL)
@@ -239,7 +239,7 @@ Wombat::Utils::SqliteDBStatement::reset_bindings()
 }
 
 void
-Wombat::Utils::SqliteDBStatement::reset_all()
+Sqlite3::SqliteDBStatement::reset_all()
 {
      reset();
      reset_bindings();
@@ -247,28 +247,28 @@ Wombat::Utils::SqliteDBStatement::reset_all()
 
 
 void 
-Wombat::Utils::SqliteDBStatement::bind_text(int pos, const char * txt, int len)
+Sqlite3::SqliteDBStatement::bind_text(int pos, const char * txt, int len)
 {
-  int l = 0;
-  len == -1 ? l = strlen(txt) : l = len;
+     int l = 0;
+     len == -1 ? l = strlen(txt) : l = len;
 
-  if (sqlite3_bind_text(stmt_p, pos, txt, l, SQLITE_TRANSIENT) != SQLITE_OK)
-    throw SqliteDBException("Could not call bind_text");
+     if (sqlite3_bind_text(stmt_p, pos, txt, l, SQLITE_TRANSIENT) != SQLITE_OK)
+          throw SqliteDBException("Could not call bind_text");
 }
 
 void 
-Wombat::Utils::SqliteDBStatement::bind_text(int pos, const string& txt, int len)
+Sqlite3::SqliteDBStatement::bind_text(int pos, const string& txt, int len)
 {
-  int l = 0;
-  len == -1 ? l = txt.length() : l = len;
+     int l = 0;
+     len == -1 ? l = txt.length() : l = len;
   
-  if (sqlite3_bind_text(stmt_p, pos, txt.c_str(), l, SQLITE_TRANSIENT) != SQLITE_OK)
-    throw SqliteDBException("Could not call bind_text");
+     if (sqlite3_bind_text(stmt_p, pos, txt.c_str(), l, SQLITE_TRANSIENT) != SQLITE_OK)
+          throw SqliteDBException("Could not call bind_text");
 }
 
 
 void 
-Wombat::Utils::SqliteDBStatement::bind_int(int pos, int val)
+Sqlite3::SqliteDBStatement::bind_int(int pos, int val)
 {
      if (sqlite3_bind_int(stmt_p, pos, val) != SQLITE_OK)
      {
@@ -279,7 +279,7 @@ Wombat::Utils::SqliteDBStatement::bind_int(int pos, int val)
 
 
 void 
-Wombat::Utils::SqliteDBStatement::bind_int64(int pos, sqlite3_int64 val)
+Sqlite3::SqliteDBStatement::bind_int64(int pos, sqlite3_int64 val)
 {
      if (sqlite3_bind_int64(stmt_p, pos, val) != SQLITE_OK)
           throw SqliteDBException("Could not call bind_int64");
@@ -287,14 +287,14 @@ Wombat::Utils::SqliteDBStatement::bind_int64(int pos, sqlite3_int64 val)
 
 
 void 
-Wombat::Utils::SqliteDBStatement::bind_double(int pos, double val)
+Sqlite3::SqliteDBStatement::bind_double(int pos, double val)
 {
      if (sqlite3_bind_double(stmt_p, pos, val) != SQLITE_OK)
           throw SqliteDBException("Could not call bind_double");
 }
 
 void 
-Wombat::Utils::SqliteDBStatement::bind_long(int pos, long val)
+Sqlite3::SqliteDBStatement::bind_long(int pos, long val)
 {
      if (sqlite3_bind_int64(stmt_p, pos, val) != SQLITE_OK)
           throw SqliteDBException("Could not call bind_double");
@@ -302,32 +302,32 @@ Wombat::Utils::SqliteDBStatement::bind_long(int pos, long val)
 
 
 void
-Wombat::Utils::SqliteDBStatement::bind(int pos, const char *txt)
+Sqlite3::SqliteDBStatement::bind(int pos, const char *txt)
 {
      bind_text(pos, txt);
 }
 
 void
-Wombat::Utils::SqliteDBStatement::bind(int pos, const string& txt)
+Sqlite3::SqliteDBStatement::bind(int pos, const string& txt)
 {
      bind_text(pos, txt);
 }
 
 void
-Wombat::Utils::SqliteDBStatement::bind(int pos, int val)
+Sqlite3::SqliteDBStatement::bind(int pos, int val)
 {
      bind_int(pos, val);
 }
 
 
 void
-Wombat::Utils::SqliteDBStatement::bind(int pos, double val)
+Sqlite3::SqliteDBStatement::bind(int pos, double val)
 {
      bind_double(pos, val);
 }
 
 int 
-Wombat::Utils::SqliteDBStatement::getColumnAsInt (int pos)
+Sqlite3::SqliteDBStatement::getColumnAsInt (int pos)
 {
   
      if (in_result_set)
@@ -342,7 +342,7 @@ Wombat::Utils::SqliteDBStatement::getColumnAsInt (int pos)
 }
 
 string
-Wombat::Utils::SqliteDBStatement::getColumnAsString (int pos)
+Sqlite3::SqliteDBStatement::getColumnAsString (int pos)
 {
      if (in_result_set)
      {
@@ -356,7 +356,7 @@ Wombat::Utils::SqliteDBStatement::getColumnAsString (int pos)
 }
 
 int 
-Wombat::Utils::SqliteDBStatement::getColumnCount ()
+Sqlite3::SqliteDBStatement::getColumnCount ()
 {
      int ret = -1;
   

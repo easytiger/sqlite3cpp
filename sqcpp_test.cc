@@ -8,7 +8,7 @@
 // simple test app to hopefull call every single function in the API
 // has no real purpose at all
 
-using namespace Wombat::Utils;
+using namespace Sqlite3;
 using namespace std;
 
 int main(int argc, char ** argv)
